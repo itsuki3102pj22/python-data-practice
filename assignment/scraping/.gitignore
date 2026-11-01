@@ -6,4 +6,4 @@ venv/
 .env
 
 # スクレイピングで生成したCSV
-books.csv
+*.csv
