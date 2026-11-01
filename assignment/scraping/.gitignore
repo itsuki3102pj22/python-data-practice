@@ -7,3 +7,6 @@ venv/
 
 # スクレイピングで生成したCSV
 *.csv
+
+# studyフォルダ
+study/
