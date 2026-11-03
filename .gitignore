@@ -5,10 +5,5 @@ venv/
 # 環境変数・秘密情報
 .env
 
-# スクレイピングで生成したCSV
-*.csv
-*.png
-*.xlsx
-
-# studyフォルダ
+# studyフォルダ配下
 study_file/
