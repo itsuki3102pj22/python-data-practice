@@ -7,6 +7,8 @@ venv/
 
 # スクレイピングで生成したCSV
 *.csv
+*.ping
+*.xlsx
 
 # studyフォルダ
-study/
+study_file/
