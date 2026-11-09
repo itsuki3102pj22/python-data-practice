@@ -6,6 +6,7 @@ plt.rcParams["font.sans-serif"] = ["Hiragino Maru Gothis Pro", "Hiragino sans", 
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.drawing.image import Image as XLImage
+from pandas.errors import EmptyDataError
 
 # ファイル一覧取得
 data_dir = Path(__file__).parent/"data"
@@ -20,10 +21,26 @@ data_dir_output = Path(__file__).parent/"output"
 # csv読み込み
 def load_sales_data(files):
     list_data = []
+    required_columns = ["日付", "店舗名", "商品名", "単価", "販売数"]
+
     for file in files:
-        df = pd.read_csv(file)
+        try:
+            df = pd.read_csv(file)
+        except EmptyDataError:
+            raise ValueError(f"{file.name}は空のCSVファイルです。")
+
+        if df.empty:
+            raise ValueError(f"{file.name}にデータがありません。")
+
+        for col in required_columns:
+            if col not in df.columns:
+                raise ValueError(f"ファイルに列{col}が存在していません。") 
+
         # 読み込んだデータをリストに追加
         list_data.append(df)
+    
+    if not list_data:
+        raise ValueError("CSVファイルが見つかりません。")
     
     # ベースデータ
     result_df = pd.concat(list_data, ignore_index=True)
@@ -33,6 +50,22 @@ def load_sales_data(files):
 # データ追加
 def calculate_sales(df):
     df = df.copy()
+    numeric_columns = ["単価", "販売数"]
+
+    # 数値以外はNaNを設定
+    for col in numeric_columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        invalid_nan_rows = df[df[col].isna()]
+
+        if not invalid_nan_rows.empty:
+            raise ValueError(f"{col}に数値以外のデータ、または欠損があります。対象行：{invalid_nan_rows.index.tolist()}")
+        
+        invalid_zero_rows = df[df[col] <= 0]
+
+        if not invalid_zero_rows.empty:
+            raise ValueError(f"{col}に異常があります。 対象行：{invalid_zero_rows.index.tolist()}")
+    
     df["売上金額"] = df["単価"] * df["販売数"]
     return df
 
