@@ -1,63 +1,95 @@
-# 📊 データ分析・自動レポート生成学習リポジトリ
+# Python実務・データ分析の学習
 
-## 🎯 リポジトリの目的
-将来、データ分析の分野に携わるすることを目標に、実務を意識したデータ処理の一連の流れ（パイプライン）を実践的に学ぶための学習用リポジトリです。
+Pythonで、Webからのデータ収集、CSV・Excelの加工と可視化、売上レポートの作成、SQLiteを使った集計と照合を学ぶリポジトリです。処理ごとの実行方法と、必要な入力ファイルを以下にまとめています。
 
-単発のコードを書くだけでなく、**「データの収集 ➔ 加工・分析 ➔ グラフ化 ➔ 最終的なレポート（Excel）出力」**という、実務で求められる一連の自動化フローを自分で構築・再現できるよう学習を進めています。
-
----
-
-## 📁 学習の流れ・ディレクトリ構成
-
-本リポジトリでは、以下の3つのステップ（ディレクトリ）順に学習・実装を進めています。
+## ディレクトリ構成
 
 ```text
-├── scraping/                   # ① Webスクレイピングによるデータ収集
-│   └── (練習用サイトからの情報取得・CSV出力スクリプトなど)
-├── graph_generation/           # ② データの加工・可視化（グラフ作成）
-│   └── (xlsxファイルの読み込み、データ加工、複数グラフの描画スクリプトなど)
-├── sales_report/               # ③ 総合実践：売上レポートの自動作成
-│   ├── data/                   # 入力用CSVファイル
-│   ├── output/                 # 出力されたファイル
-│   └── main.py                 # CSV読み込み・データ加工・グラフ化・Excel出力のメイン処理
-├── study_file/                 # 一時保存・学習用ファイル（※Git管理外）
-└── README.md                   
-各ステップの詳細
-① scraping/（スクレイピング）
-内容: 練習用のスクレイピングサイトを利用し、必要な商品情報を自動で取得。
+assignment/
+├── scraping/                     # 書籍情報の取得とCSV出力
+├── graph_generation/             # 商品データの抽出・グラフ描画・Excel加工
+└── sales_report/
+    ├── sales_products/           # 商品別の売上集計とExcelレポート
+    │   ├── data/                  # 商品データ
+    │   └── output/                # 保存済みの出力例
+    └── sales_products2/          # 店舗別売上の分析とSQLite・pandasの練習
+        ├── data/                  # 店舗別の売上CSVと売上目標
+        └── output/                # 保存済みのCSV・グラフ・Excel
+```
 
-目的: Web上の生データを収集し、構造化データ（CSVファイル）にまとめる基本スキルの習得。
+## 環境準備
 
-② graph_generation/（データ加工・グラフ化）
-内容: xlsxファイルを読み込み、目的に応じてデータを加工した上で、複数のグラフを分かりやすく表示。
+リポジトリのルートで実行します。
 
-目的: データの集計・整理方法や、情報を視覚的に伝えるためのグラフ描画スキルの習得。
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install requests beautifulsoup4 pandas matplotlib openpyxl pillow
+```
 
-③ sales_report/（売上レポートの自動作成・総合実践）
-内容:
+SQLiteにはPython標準ライブラリの `sqlite3` を使用します。日本語のグラフラベルには、各スクリプトのMatplotlib設定で利用できる日本語フォントが必要です。
 
-支店ごとの商品売上データをCSVとして用意（作成）。
+## 書籍情報の取得
 
-そのデータをPythonで読み込み、必要な形にデータ加工。
+練習用サイト Books to Scrape から、書名・価格・在庫・評価・商品リンクを取得します。インターネット接続が必要で、CSVは実行したディレクトリに上書き保存されます。
 
-加工したデータを元に売上グラフを自動生成。
+| スクリプト | 取得範囲 | 出力 |
+| --- | --- | --- |
+| `scrape_books.py` | 最初の一覧ページ | `books.csv` |
+| `scrape_books_multi.py` | 最初のページから次へ進み、2ページ目の商品を取得 | `books_multi.csv` |
+| `scrape_books_page.py` | 次ページのリンクをたどり、最大3ページ | `books_page.csv`（BOM付きUTF-8） |
 
-最終成果物として、集計データとグラフを組み合わせた美しいレポート（xlsxファイル）を自動出力。
+```sh
+(cd assignment/scraping && python scrape_books_page.py)
+```
 
-目的: これまでの学習を統合し、実務でそのまま活かせる「自動レポート生成パイプライン」を自分の手で作り上げる。
+## 商品データの加工・可視化
 
-🛠️ 使用技術・ライブラリ
-Python（メイン言語）
+`graph_generation/` で実行します。CSVを読む2本は入力をスクリプトと同じ場所に探すため、同梱サンプルを下のコマンドでコピーします。
 
-BeautifulSoup4 / Requests（Webスクレイピング）
+| スクリプト | 入力と処理 |
+| --- | --- |
+| `read.py` | `products.csv` から商品名、単価5,000円以上の行、販売数10個以上の行、行数と列数を表示 |
+| `plot_data.py` | `sales_result.csv` の先頭列を商品名のインデックスとして読み、売上金額と販売数の棒グラフを表示し、実行ディレクトリにPNGを保存 |
+| `execl_read.py` | 同じ場所の `sales.xlsx` を読み、2〜6行目の売上金額とD7の合計式を追加して `sales_updated.xlsx` に保存 |
 
-Pandas（データ集計・加工）
+```sh
+(
+  cd assignment/graph_generation
+  cp ../sales_report/sales_products/data/products.csv .
+  cp ../sales_report/sales_products/output/sales_result.csv .
+  python read.py
+  python plot_data.py
+  python execl_read.py
+)
+```
 
-Matplotlib / Seaborn（データ可視化・グラフ描画）
+## 商品別売上レポート
 
-Openpyxl（Excelファイルの読み書き・書式設定）
+`sales_products/` の `process_data.py` と `sales_analysis.py` は、スクリプトと同じ場所の `products.csv` を読みます。同梱の入力は `data/` にあります。
 
-💡 工夫している点・学び
-実務を意識した設計: 単なるコードの羅列ではなく、実際の業務フロー（データ集めて・加工して・報告書にする）を意識してパイプラインを構築しました。
+```sh
+(
+  cd assignment/sales_report/sales_products
+  cp data/products.csv .
+  python process_data.py
+  python sales_analysis.py
+)
+```
 
-環境の整理: 学習過程で生成されるデータファイル（.csv, .xlsx）やOS依存の不要ファイル（.DS_Store）は、.gitignore を用いて適切にGit管理外とし、綺麗なコードベースを維持しています。
+| スクリプト | 処理と出力 |
+| --- | --- |
+| `process_data.py` | 単価×販売数を計算し、商品別の販売数と売上金額を売上順に集計。スクリプトの隣に `sales_summary.csv` を保存 |
+| `sales_analysis.py` | 商品別の売上金額と販売数の棒グラフを表示し、実行ディレクトリにPNGを保存。集計・合計式・画像を含む `monthly_sales_report.xlsx` をスクリプトの隣に保存 |
+| `report.py` | 同じ場所の `sales_by_product.csv` を読み、売上金額列と合計行をメモリ上で追加する練習。先頭列をインデックスとして読み込むため、入力例は `商品名,分類,単価,販売数`。実行時のファイル出力はなし |
+
+## 店舗別売上の分析・照合
+
+```sh
+python assignment/sales_report/sales_products2/main.py
+python assignment/sales_report/sales_products2/database.py
+```
+
+- `main.py` の通常実行では、`data/store_target.csv` と `data/sales_*.csv` を読み込みます。売上CSVの空ファイルと必須列（日付・店舗名・商品名・単価・販売数）を確認し、結合後の列の型を表示します。
+- 売上金額の計算と値の検証、店舗別・商品別・店舗×商品別の集計、目標達成率、日別売上と最高売上日、折れ線グラフ、Excelの出力・書式設定は関数として実装済みです。現在の `main()` ではこれらの呼び出しがコメントアウトされています。`output/sales_report.xlsx` とグラフは保存済みの出力例です。
+- `database.py` の通常実行では、コード内のサンプルで店舗別整合性チェックを行い、店舗行の不在、金額の欠損、差額を表示します。CSV取込、SQLiteへのINSERT・UPSERT、SQL集計、pandasでの重複処理とCSV出力は関数を個別に呼び出して試せます。詳しくは[店舗別売上の学習メモ](assignment/sales_report/sales_products2/README.md)を参照してください。
