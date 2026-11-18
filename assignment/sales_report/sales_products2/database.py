@@ -361,33 +361,47 @@ df_correct = pd.DataFrame({
 })
 
 df_result = pd.DataFrame({
-    "店舗名": ["東京店", "大阪店", "名古屋店", "福岡店"],
-    "売上金額": [100000, 80000, 90000, 50000]
+    "店舗名": ["東京店", "大阪店", "福岡店"],
+    "売上金額": [None, 80000, 50000]
 })
 
 
 # 店舗別整合性チェック
 def check_store_consistency(df_correct, df_result):
-    df = pd.merge(df_correct, df_result, on="店舗名", how="outer")
-    df["差額"] = df["売上金額_y"] - df["売上金額_x"]
-    # print(df.isna().sum())
+    df = pd.merge(df_correct, df_result, on="店舗名", how="outer", indicator=True)
 
-    ng_df = df[df["差額"] != 0]
-    if ng_df.empty:
+    # グループの分類
+    both_df = df[df["_merge"] == "both"].copy()
+    both_df["差額"] = both_df["売上金額_y"] - both_df["売上金額_x"]
+    left_only_df = df[df["_merge"] == "left_only"]
+    right_only_df = df[df["_merge"] == "right_only"]
+
+    # both_dfで差額0ではないデータを抽出
+    diff_df = both_df[both_df["差額"] != 0]
+
+    # 判定処理
+    if left_only_df.empty and right_only_df.empty and diff_df.empty:
         print("\n店舗別整合性チェック：OK")
     else:
         print("\n店舗別整合性チェック：NG")
-        for _, row in ng_df.iterrows():
-            if pd.isna(row["売上金額_x"]):
-                print(f"{row['店舗名']}: 基準データなし")
-            elif pd.isna(row["売上金額_y"]):
-                print(f"{row['店舗名']}: 売上データなし")
+        for _, row in left_only_df.iterrows():
+            print(f"{row['店舗名']}:売上データなし")
+
+        for _, row in right_only_df.iterrows():
+            print(f"{row['店舗名']}:基準データなし")
+
+        for _, row in diff_df.iterrows():
+            if pd.isna(row['売上金額_x']) and pd.isna(row['売上金額_y']):
+                print(f"{row['店舗名']}: 基準・売上ともに金額が欠損")
+            elif pd.isna(row['売上金額_x']):
+                print(f"{row['店舗名']}: 基準データの金額が欠損")
+            elif pd.isna(row['売上金額_y']):
+                print(f"{row['店舗名']}: 売上データの金額が欠損")
             else:
-                print(f"{row['店舗名']}: 差額{float(row['差額']):,}円")
+                print(f"{row['店舗名']}:差額{int(row['差額']):,}円")
 
     
 
 # 実行
 if __name__ == "__main__":
-    # サンプルデータによる整合性チェック
     check_store_consistency(df_correct, df_result)

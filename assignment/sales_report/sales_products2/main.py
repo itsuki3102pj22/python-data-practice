@@ -234,28 +234,29 @@ def format_excel(output_path, data_dir_output):
 def main():
     # csvファイル読み込み
     result_df = load_sales_data(files)
+    print(result_df.dtypes)
 
-    # 売上金額の計算
-    base_df = calculate_sales(result_df)
+    # # 売上金額の計算
+    # base_df = calculate_sales(result_df)
 
-    # 店舗別・商品別集計
-    groupby_sorted_branch, groupby_sorted_products, groupby_branch_products = analyze_sales(base_df)
+    # # 店舗別・商品別集計
+    # groupby_sorted_branch, groupby_sorted_products, groupby_branch_products = analyze_sales(base_df)
 
-    # 目標達成率の分析
-    branch_achievement_df = analyze_achievement(groupby_sorted_branch, target_df)
+    # # 目標達成率の分析
+    # branch_achievement_df = analyze_achievement(groupby_sorted_branch, target_df)
 
-    # 日別売上の分析
-    daily_sales, daily_branch_sales, branch_max_sales_day = analyze_daily_sales(base_df)
+    # # 日別売上の分析
+    # daily_sales, daily_branch_sales, branch_max_sales_day = analyze_daily_sales(base_df)
 
-    # グラフ作成
-    create_charts(daily_sales, daily_branch_sales, data_dir_output)
+    # # グラフ作成
+    # create_charts(daily_sales, daily_branch_sales, data_dir_output)
 
-    # Excel出力
-    output_path = data_dir_output/"sales_report.xlsx"
-    export_excel(branch_achievement_df, groupby_sorted_products, daily_sales, branch_max_sales_day, output_path)
+    # # Excel出力
+    # output_path = data_dir_output/"sales_report.xlsx"
+    # export_excel(branch_achievement_df, groupby_sorted_products, daily_sales, branch_max_sales_day, output_path)
 
-    # Excel加工
-    format_excel(output_path, data_dir_output) 
+    # # Excel加工
+    # format_excel(output_path, data_dir_output) 
 
 if __name__ == "__main__":
     main()
